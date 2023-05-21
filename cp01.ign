@@ -1,0 +1,70 @@
+{
+  "ignition": {
+    "version": "3.3.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "groups": [
+          "docker",
+          "wheel",
+          "sudo"
+        ],
+        "name": "core",
+        "sshAuthorizedKeys": [
+          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBOMAVlvxAVGC+NCaXcHenuMCFOgeNeT5m4lYqCGeskqxijKyMUhR7lhs0q81e8K619fJxVqFHjcMam/8mRD717M="
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "overwrite": true,
+        "path": "/etc/hostname",
+        "contents": {
+          "compression": "",
+          "source": "data:,node1.k8s.local"
+        }
+      },
+      {
+        "overwrite": true,
+        "path": "/etc/hosts",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/zI0Mtcz0DPQM1SAgJz85MScjPziEgVkABfVA7NS8nMTM/MQoiZITGQVJlxWVobYDSLFeDMkJrIKMy5DSyM9QzMLPQsDPSMDkE15+SmphnrZFsUQdVDzwaKoio2gwkZYFRtxAQIAAP//EyhBqBgBAAA="
+        }
+      },
+      {
+        "path": "/etc/sysctl.d/10-disable-ipv6.conf",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/1JWSMksTkzKSVXwDCgz48pLLdHLLCgz00vOz0vTS8zJ0YNKx4NEFWwVDNGUpKSmJZbmlBBSlppXYFBsgqkKEAAA//80eMvefwAAAA=="
+        }
+      },
+      {
+        "path": "/etc/sysctl.d/99-kubernetes-cri.conf",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/3zMMQoCMRCF4d5TPNg6C4LYeQIPIZPk7ToQJ3E2Kt5eVray8DWv+fgHnOnGgiYuN3b6Auf9oc6M+Ea/Esk1VKRqXdTooM1qHHfGPkbXPHO7YFNIUkrQ1iUWLsAJ+6/T9jyM2i5T9Zd4xu9WN/wLHrfiCj8BAAD//45C8tW1AAAA"
+        }
+      },
+      {
+        "path": "/etc/modules-load.d/crio-net.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:,%23%20Kernel%20modules%20required%20by%20the%20cri-o%20container%20engine.%0Aoverlay%0Abr_netfilter%0A"
+        }
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "contents": "[Unit]\nRequires=network-online.target\nAfter=network-online.target\nBefore=sshd.service\n[Service]\nType=oneshot\nExecCondition=/usr/bin/test ! -f /etc/python3-for-ansible.done\nExecStart=/usr/bin/sed -i '/\\\\[updates\\\\]/,/^\\\\[/ s/^enabled=.*$/enabled=0/' /etc/yum.repos.d/fedora-updates.repo\nExecStart=/usr/bin/rpm-ostree install python3 libselinux-python3\nExecStart=/usr/bin/sed -i '/\\\\[updates\\\\]/,/^\\\\[/ s/^enabled=.*$/enabled=1/' /etc/yum.repos.d/fedora-updates.repo\nExecStart=/usr/bin/sed -i '/^\\\\[updates\\\\]/a exclude=libxcrypt-compat* mpdecimal* python-pip-wheel* python-setuptools-wheel* python-unversioned-command* python3* python3-libs* python3-selinux*' /etc/yum.repos.d/fedora-updates.repo\nExecStartPost=/usr/bin/touch /etc/python3-for-ansible.done\nExecStartPost=/usr/sbin/shutdown -r now\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "python3-for-ansible.service"
+      }
+    ]
+  }
+}
